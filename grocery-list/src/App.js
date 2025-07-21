@@ -1,11 +1,11 @@
 import './App.css';
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { CssBaseline, Container, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Typography } from '@mui/material';
 import './firebase';
 import { auth } from './firebase';
 import { onAuthStateChanged, signInAnonymously, linkWithCredential, EmailAuthProvider } from 'firebase/auth';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import ListOverview from './components/ListOverview';
 import ListDetail from './components/ListDetail';
 import { db } from './firebase';
