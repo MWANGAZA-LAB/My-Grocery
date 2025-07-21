@@ -18,8 +18,6 @@ A beautifully simple grocery list app for effortless sharing and real-time colla
 4. **Shop together**—all changes sync instantly!
 
 ## Get Started
-1. `npm install`
-2. `npm start`
 
 ---
 
