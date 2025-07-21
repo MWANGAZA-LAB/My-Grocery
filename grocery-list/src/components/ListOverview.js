@@ -56,8 +56,8 @@ export default function ListOverview() {
 
   return (
     <Box sx={{ mt: 4 }}>
-      <Typography variant="subtitle1" align="center" sx={{ mb: 1, color: 'text.secondary' }}>
-        Share. Shop. Sync. Simple.
+      <Typography variant="subtitle1" align="center" sx={{ mb: 1, color: 'text.secondary', fontWeight: 'bold', fontStyle: 'italic' }}>
+        <b><i>Share. Shop. Sync. Simple.</i></b>
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h5" align="center" gutterBottom>My Lists</Typography>
