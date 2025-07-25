@@ -7,18 +7,20 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { useNavigate } from 'react-router-dom';
 import QRScanner from './QRScanner';
 import { QRCodeSVG } from 'qrcode.react';
+import { GroceryList, Progress } from '../types';
 
-export default function ListOverview() {
-  const [lists, setLists] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function ListOverview(): React.ReactElement {
+  const [lists, setLists] = useState<GroceryList[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const user = auth.currentUser;
   const navigate = useNavigate();
-  const [progress, setProgress] = useState({}); // { [listId]: { checked, total } }
-  const [showArchived, setShowArchived] = useState(false);
-  const [scanOpen, setScanOpen] = useState(false);
-  const [scanError, setScanError] = useState('');
-  const [qrOpen, setQrOpen] = useState(false);
-  const [qrListId, setQrListId] = useState(null);
+  const [progress, setProgress] = useState<Progress>({}); // { [listId]: { checked, total } }
+  const [showArchived, setShowArchived] = useState<boolean>(false);
+  const [scanOpen, setScanOpen] = useState<boolean>(false);
+  const [scanError, setScanError] = useState<string>('');
+  const [qrOpen, setQrOpen] = useState<boolean>(false);
+  const [qrListId, setQrListId] = useState<string | null>(null);
+  const [shareSelectOpen, setShareSelectOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (!user) return;
@@ -28,10 +30,10 @@ export default function ListOverview() {
       orderBy('updatedAt', 'desc')
     );
     const unsub = onSnapshot(q, snap => {
-      const listsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const listsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as GroceryList));
       setLists(listsData);
       // Use progress field from list doc
-      const progressObj = {};
+      const progressObj: Progress = {};
       listsData.forEach(list => {
         progressObj[list.id] = list.progress || { checked: 0, total: 0 };
       });
@@ -41,7 +43,14 @@ export default function ListOverview() {
     return unsub;
   }, [user]);
 
-  const handleAdd = async () => {
+  const handleShareSelect = (listId: string): void => {
+    setQrListId(listId);
+    setShareSelectOpen(false);
+    setQrOpen(true);
+  };
+
+  const handleAdd = async (): Promise<void> => {
+    if (!user) return;
     const name = prompt('List name?');
     if (!name) return;
     await addDoc(collection(db, 'lists'), {
@@ -66,11 +75,12 @@ export default function ListOverview() {
         </Button>
       </Box>
       <Button startIcon={<AddIcon />} variant="contained" fullWidth onClick={handleAdd} sx={{ mb: 2 }}>Add List</Button>
-      <Button variant="outlined" fullWidth sx={{ mb: 2 }} onClick={() => setScanOpen(true)}>Scan QR</Button>
+      <Button variant="outlined" fullWidth sx={{ mb: 1 }} onClick={() => setScanOpen(true)}>Scan QR</Button>
+      <Button variant="outlined" fullWidth sx={{ mb: 2 }} onClick={() => setShareSelectOpen(true)} disabled={lists.filter(list => !list.archived).length === 0}>Share List</Button>
       {loading ? <Typography align="center">Loading...</Typography> :
         <List>
           {lists.filter(list => showArchived ? list.archived : !list.archived).map(list => (
-            <ListItem key={list.id} button onClick={() => navigate(`/list/${list.id}`)}>
+            <ListItem key={list.id} component="div" onClick={() => navigate(`/list/${list.id}`)} sx={{ cursor: 'pointer' }}>
               <ListItemText
                 primary={list.name}
                 secondary={
@@ -85,19 +95,44 @@ export default function ListOverview() {
                     value={progress[list.id] && progress[list.id].total > 0 ? (progress[list.id].checked / progress[list.id].total) * 100 : 0}
                   />
                 </Box>
-                <Button size="small" variant="outlined" sx={{ ml: 1 }} onClick={e => { e.stopPropagation(); setQrListId(list.id); setQrOpen(true); }}>Show QR</Button>
               </ListItemSecondaryAction>
             </ListItem>
           ))}
         </List>
       }
+      <Dialog open={shareSelectOpen} onClose={() => setShareSelectOpen(false)}>
+        <DialogTitle>Select List to Share</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Choose a list to generate a QR code for sharing:
+          </Typography>
+          <List>
+            {lists.filter(list => !list.archived).map(list => (
+              <ListItem key={list.id} onClick={() => handleShareSelect(list.id)} sx={{ cursor: 'pointer', border: '1px solid #e0e0e0', borderRadius: 1, mb: 1 }}>
+                <ListItemText
+                  primary={list.name}
+                  secondary={progress[list.id] ? `${progress[list.id].checked}/${progress[list.id].total} items` : '0 items'}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShareSelectOpen(false)}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
       <Dialog open={qrOpen} onClose={() => setQrOpen(false)}>
         <DialogTitle>Share List via QR Code</DialogTitle>
         <DialogContent>
           {qrListId && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                {lists.find(list => list.id === qrListId)?.name}
+              </Typography>
               <QRCodeSVG value={window.location.origin + '/list/' + qrListId} size={180} />
-              <Typography variant="body2" sx={{ mt: 2 }}>Let another user scan this code to join and collaborate on your list.</Typography>
+              <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+                Let another user scan this code to join and collaborate on your list.
+              </Typography>
             </Box>
           )}
         </DialogContent>
@@ -109,7 +144,8 @@ export default function ListOverview() {
         <DialogTitle>Scan QR Code to Join List</DialogTitle>
         <DialogContent>
           <QRScanner
-            onScan={async data => {
+            onScan={async (data: string) => {
+              if (!user) return;
               setScanOpen(false);
               setScanError('');
               // Extract listId from URL
@@ -132,11 +168,11 @@ export default function ListOverview() {
                 setScanError('Invalid QR code');
               }
             }}
-            onError={err => {
+            onError={(err: string) => {
               if (typeof err === 'string' && err.includes('NotFoundException')) {
                 setScanError('Point your camera at a QR code to join a list.');
               } else {
-                setScanError(typeof err === 'string' ? err : err.message);
+                setScanError(err);
               }
             }}
             width={300}
@@ -150,4 +186,4 @@ export default function ListOverview() {
       </Dialog>
     </Box>
   );
-} 
+}

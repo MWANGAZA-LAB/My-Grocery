@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 
-export default function SyncStatus() {
-  const [online, setOnline] = useState(window.navigator.onLine);
+export default function SyncStatus(): React.ReactElement {
+  const [online, setOnline] = useState<boolean>(window.navigator.onLine);
 
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -24,4 +24,4 @@ export default function SyncStatus() {
       )}
     </Box>
   );
-} 
+}
