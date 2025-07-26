@@ -30,6 +30,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:railway": "set CI=false && set NODE_OPTIONS=--max-old-space-size=512 && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "start:prod": "serve -s build -l 3000"

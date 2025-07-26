@@ -1,0 +1,13 @@
+[phases.build]
+cmds = [
+    "npm ci --only=production",
+    "npm run build:railway"
+]
+
+[phases.start]
+cmd = "npm run start:prod"
+
+[variables]
+NODE_ENV = "production"
+CI = "false"
+GENERATE_SOURCEMAP = "false"
