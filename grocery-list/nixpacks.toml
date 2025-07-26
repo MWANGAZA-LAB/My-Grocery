@@ -1,13 +1,14 @@
-[phases.build]
-cmds = [
-    "npm ci --only=production",
-    "npm run build:railway"
-]
-
-[phases.start]
-cmd = "npm run start:prod"
-
 [variables]
 NODE_ENV = "production"
 CI = "false"
 GENERATE_SOURCEMAP = "false"
+NODE_OPTIONS = "--max-old-space-size=512"
+
+[phases.build]
+cmds = [
+    "npm install",
+    "npm run build"
+]
+
+[phases.start]
+cmd = "npm run start:prod"
