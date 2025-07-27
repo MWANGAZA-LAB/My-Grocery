@@ -23,12 +23,20 @@ export default function ListOverview(): React.ReactElement {
   const [shareSelectOpen, setShareSelectOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!user) return;
-    const q = query(
-      collection(db, 'lists'),
-      where('allowedUsers', 'array-contains', user.uid),
-      orderBy('updatedAt', 'desc')
-    );
+    let q;
+    if (user) {
+      q = query(
+        collection(db, 'lists'),
+        where('allowedUsers', 'array-contains', user.uid),
+        orderBy('updatedAt', 'desc')
+      );
+    } else {
+      // For anonymous users, show all public lists or empty array
+      setLists([]);
+      setLoading(false);
+      return;
+    }
+    
     const unsub = onSnapshot(q, snap => {
       const listsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as GroceryList));
       setLists(listsData);
@@ -50,13 +58,12 @@ export default function ListOverview(): React.ReactElement {
   };
 
   const handleAdd = async (): Promise<void> => {
-    if (!user) return;
     const name = prompt('List name?');
     if (!name) return;
     await addDoc(collection(db, 'lists'), {
       name,
-      ownerId: user.uid,
-      allowedUsers: [user.uid],
+      ownerId: user?.uid || 'anonymous',
+      allowedUsers: user?.uid ? [user.uid] : [],
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       archived: false
@@ -145,7 +152,6 @@ export default function ListOverview(): React.ReactElement {
         <DialogContent>
           <QRScanner
             onScan={async (data: string) => {
-              if (!user) return;
               setScanOpen(false);
               setScanError('');
               // Extract listId from URL
@@ -153,17 +159,17 @@ export default function ListOverview(): React.ReactElement {
               if (match) {
                 const listId = match[1];
                 // Check and add user to allowedUsers if needed
-                const listRef = doc(db, 'lists', listId);
-                const listSnap = await getDoc(listRef);
-                if (listSnap.exists()) {
-                  const listData = listSnap.data();
-                  if (!listData.allowedUsers.includes(user.uid)) {
-                    await updateDoc(listRef, { allowedUsers: [...listData.allowedUsers, user.uid] });
+                if (user) {
+                  const listRef = doc(db, 'lists', listId);
+                  const listSnap = await getDoc(listRef);
+                  if (listSnap.exists()) {
+                    const listData = listSnap.data();
+                    if (!listData.allowedUsers.includes(user.uid)) {
+                      await updateDoc(listRef, { allowedUsers: [...listData.allowedUsers, user.uid] });
+                    }
                   }
-                  navigate(`/list/${listId}`);
-                } else {
-                  setScanError('List not found');
                 }
+                navigate(`/list/${listId}`);
               } else {
                 setScanError('Invalid QR code');
               }
