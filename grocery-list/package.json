@@ -29,8 +29,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "set CI=false && set NODE_OPTIONS=--max-old-space-size=512 && react-scripts build",
-    "build:railway": "set CI=false && set NODE_OPTIONS=--max-old-space-size=512 && react-scripts build",
+    "build": "set CI=false && set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts build",
+    "build:railway": "set CI=false && set NODE_OPTIONS=--max-old-space-size=256 && react-scripts build",
+    "build:minimal": "set CI=false && set NODE_OPTIONS=--max-old-space-size=256 && set GENERATE_SOURCEMAP=false && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "start:prod": "serve -s build -l 3000"

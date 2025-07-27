@@ -1,30 +1,16 @@
+# Use a lightweight static server
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Only install serve
+RUN npm install -g serve@14.2.4
 
-# Install dependencies
-RUN npm ci
-
-# Copy source code
-COPY . .
-
-# Set environment variables
-ENV NODE_ENV=production
-ENV CI=false
-ENV GENERATE_SOURCEMAP=false
-ENV NODE_OPTIONS=--max-old-space-size=512
-
-# Build the app
-RUN npm run build
-
-# Install serve globally
-RUN npm install -g serve
+# Copy pre-built files (build folder should be committed)
+COPY build ./build
 
 # Expose port
 EXPOSE 3000
 
-# Start the app
+# Start the static server
 CMD ["serve", "-s", "build", "-l", "3000"]

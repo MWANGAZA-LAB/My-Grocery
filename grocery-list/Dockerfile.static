@@ -1,0 +1,12 @@
+# Simple static deployment for Railway
+FROM nginx:alpine
+
+# Copy pre-built files (we'll build locally and commit)
+COPY build /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 3000
+
+CMD ["nginx", "-g", "daemon off;"]
