@@ -8,6 +8,7 @@ import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import ListOverview from './components/ListOverview';
 import ListDetail from './components/ListDetail';
 import SyncStatus from './components/SyncStatus';
+import ErrorBoundary from './components/ErrorBoundary';
 import { HomeProps } from './types';
 
 // Create dark theme
@@ -53,19 +54,23 @@ function App() {
   if (user === undefined) return null; // or a spinner
 
   return (
-    <ThemeProvider theme={darkTheme}>
-      <Router>
-        <SyncStatus />
-        <CssBaseline />
-        <Container maxWidth="sm">
-          <Routes>
-            <Route path="/list/:id" element={<ListDetail />} />
-            <Route path="/" element={<Home user={user} />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Container>
-      </Router>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider theme={darkTheme}>
+        <Router>
+          <SyncStatus />
+          <CssBaseline />
+          <Container maxWidth="sm">
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/list/:id" element={<ListDetail />} />
+                <Route path="/" element={<Home user={user} />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </ErrorBoundary>
+          </Container>
+        </Router>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
