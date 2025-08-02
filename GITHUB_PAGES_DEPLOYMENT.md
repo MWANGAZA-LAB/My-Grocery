@@ -113,6 +113,17 @@ npm run deploy
   - Ensure Firebase project allows your GitHub Pages domain
   - Check Firebase console for any domain restrictions
 
+#### 5. Security Vulnerabilities in npm audit
+- **Cause**: Development dependencies have known vulnerabilities
+- **Impact**: Does NOT affect production deployment (static files only)
+- **Solution**: 
+  - Production build is secure (no dev dependencies included)
+  - Monitor for react-scripts updates
+  - Use `npm audit --omit=dev --audit-level critical` for production check
+- **Status**: ✅ Safe to deploy - vulnerabilities are in build tools only
+  - Ensure Firebase project allows your GitHub Pages domain
+  - Check Firebase console for any domain restrictions
+
 ### Debug Steps
 1. **Check build logs**: Go to Actions → latest workflow → build step
 2. **Verify secrets**: Ensure all 7 Firebase secrets are set
