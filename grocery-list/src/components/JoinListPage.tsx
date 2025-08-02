@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -10,9 +10,6 @@ import {
   Alert,
   Card,
   CardContent,
-  List,
-  ListItem,
-  ListItemText,
   Chip,
   Divider,
 } from '@mui/material';
@@ -39,13 +36,7 @@ export default function JoinListPage(): React.ReactElement {
   const [guestName, setGuestName] = useState<string>('');
   const [showGuestForm, setShowGuestForm] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (token) {
-      validateToken();
-    }
-  }, [token]);
-
-  const validateToken = async (): Promise<void> => {
+  const validateToken = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       const tokenData = await smartShareService.validateShareToken(token!);
@@ -62,7 +53,13 @@ export default function JoinListPage(): React.ReactElement {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      validateToken();
+    }
+  }, [token, validateToken]);
 
   const handleJoinWithAccount = async (): Promise<void> => {
     if (!shareToken || !auth.currentUser) return;

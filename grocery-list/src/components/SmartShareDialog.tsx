@@ -20,6 +20,7 @@ import {
   ListItemText,
   ListItemIcon,
   Checkbox,
+  ListItemButton,
 } from '@mui/material';
 import {
   ContentCopy,
@@ -81,7 +82,6 @@ export default function SmartShareDialog({
 
   const [shareLink, setShareLink] = useState<string>('');
   const [showQR, setShowQR] = useState<boolean>(false);
-  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -309,19 +309,21 @@ export default function SmartShareDialog({
               <Box sx={{ maxHeight: 200, overflow: 'auto', border: 1, borderColor: 'divider', borderRadius: 1 }}>
                 <List dense>
                   {items.map((item) => (
-                    <ListItem key={item.id} button onClick={() => handleItemSelection(item.id)}>
-                      <ListItemIcon>
-                        <Checkbox
-                          checked={shareSettings.selectedItems.includes(item.id)}
-                          tabIndex={-1}
-                          disableRipple
+                    <ListItem key={item.id} disablePadding>
+                      <ListItemButton onClick={() => handleItemSelection(item.id)}>
+                        <ListItemIcon>
+                          <Checkbox
+                            checked={shareSettings.selectedItems.includes(item.id)}
+                            tabIndex={-1}
+                            disableRipple
+                          />
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={item.text}
+                          secondary={item.category}
+                          sx={{ textDecoration: item.done ? 'line-through' : 'none' }}
                         />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={item.text}
-                        secondary={item.category}
-                        sx={{ textDecoration: item.done ? 'line-through' : 'none' }}
-                      />
+                      </ListItemButton>
                     </ListItem>
                   ))}
                 </List>
@@ -399,7 +401,7 @@ export default function SmartShareDialog({
                 >
                   QR Code
                 </Button>
-                {navigator.share && (
+                {typeof navigator.share === 'function' && (
                   <Button
                     variant="outlined"
                     startIcon={<Share />}

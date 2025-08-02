@@ -14,9 +14,20 @@ const firebaseConfig = {
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth: Auth = getAuth(app);
-const db: Firestore = getFirestore(app);
+// Initialize Firebase with error handling
+let app: any;
+let auth: Auth;
+let db: Firestore;
+
+try {
+  console.log('Initializing Firebase with config:', firebaseConfig);
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  console.log('Firebase initialized successfully');
+} catch (error) {
+  console.error('Firebase initialization failed:', error);
+  throw error;
+}
 
 export { auth, db };
