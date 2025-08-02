@@ -10,6 +10,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useParams, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { GroceryItem, GroceryList } from '../types';
+import SmartShareDialog from './SmartShareDialog';
 
 export default function ListDetail(): React.ReactElement {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ export default function ListDetail(): React.ReactElement {
   const [addOpen, setAddOpen] = useState<boolean>(false);
   const [newText, setNewText] = useState<string>('');
   const [newQty, setNewQty] = useState<string>('');
+  const [smartShareOpen, setSmartShareOpen] = useState<boolean>(false);
   const [shareOpen, setShareOpen] = useState<boolean>(false);
   const [inviteEmail, setInviteEmail] = useState<string>('');
   const [inviteError, setInviteError] = useState<string>('');
@@ -139,7 +141,8 @@ export default function ListDetail(): React.ReactElement {
       </List>
       <Button startIcon={<AddIcon />} variant="contained" fullWidth onClick={() => setAddOpen(true)} sx={{ mt: 2 }}>Add Item</Button>
       <Button startIcon={<ArchiveIcon />} variant="outlined" fullWidth onClick={handleArchive} sx={{ mt: 1 }} disabled={list.archived}>Archive List</Button>
-      <Button startIcon={<PersonAddIcon />} variant="outlined" fullWidth onClick={() => setShareOpen(true)} sx={{ mt: 1 }} disabled={list.archived || list.ownerId !== user?.uid}>Share List</Button>
+      <Button startIcon={<PersonAddIcon />} variant="outlined" fullWidth onClick={() => setSmartShareOpen(true)} sx={{ mt: 1 }} disabled={list.archived || list.ownerId !== user?.uid}>Smart Share</Button>
+      <Button startIcon={<PersonAddIcon />} variant="outlined" fullWidth onClick={() => setShareOpen(true)} sx={{ mt: 1 }} disabled={list.archived || list.ownerId !== user?.uid}>Legacy Share</Button>
       <Dialog open={addOpen} onClose={() => setAddOpen(false)}>
         <DialogTitle>Add Item</DialogTitle>
         <DialogContent>
@@ -163,6 +166,16 @@ export default function ListDetail(): React.ReactElement {
           <Button onClick={handleAdd} variant="contained">Add</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Smart Share Dialog */}
+      <SmartShareDialog
+        open={smartShareOpen}
+        onClose={() => setSmartShareOpen(false)}
+        listId={id!}
+        listName={list.name}
+        items={items}
+      />
+
       <Dialog open={shareOpen} onClose={() => setShareOpen(false)}>
         <DialogTitle>Share List</DialogTitle>
         <DialogContent>

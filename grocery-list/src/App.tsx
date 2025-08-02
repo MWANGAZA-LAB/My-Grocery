@@ -7,6 +7,7 @@ import { auth } from './firebase';
 import { onAuthStateChanged, signInAnonymously, User } from 'firebase/auth';
 import ListOverview from './components/ListOverview';
 import ListDetail from './components/ListDetail';
+import JoinListPage from './components/JoinListPage';
 import SyncStatus from './components/SyncStatus';
 import ErrorBoundary from './components/ErrorBoundary';
 import { HomeProps } from './types';
@@ -63,6 +64,7 @@ function App() {
             <ErrorBoundary>
               <Routes>
                 <Route path="/list/:id" element={<ListDetail />} />
+                <Route path="/join/:token" element={<JoinListPage />} />
                 <Route path="/" element={<Home user={user} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
