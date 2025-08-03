@@ -1,9 +1,9 @@
 {
   "files": {
     "main.css": "/My-Grocery/static/css/main.bb1bd574.css",
-    "main.js": "/My-Grocery/static/js/main.dc9c2dc4.js",
+    "main.js": "/My-Grocery/static/js/main.7e7e4867.js",
     "static/css/475.0423bc91.chunk.css": "/My-Grocery/static/css/475.0423bc91.chunk.css",
-    "static/js/475.bde76711.chunk.js": "/My-Grocery/static/js/475.bde76711.chunk.js",
+    "static/js/475.07ab5b05.chunk.js": "/My-Grocery/static/js/475.07ab5b05.chunk.js",
     "static/css/449.0423bc91.chunk.css": "/My-Grocery/static/css/449.0423bc91.chunk.css",
     "static/js/449.be2424cd.chunk.js": "/My-Grocery/static/js/449.be2424cd.chunk.js",
     "static/js/453.418b420f.chunk.js": "/My-Grocery/static/js/453.418b420f.chunk.js",
@@ -13,9 +13,9 @@
     "static/js/711.43ec020f.chunk.js": "/My-Grocery/static/js/711.43ec020f.chunk.js",
     "index.html": "/My-Grocery/index.html",
     "main.bb1bd574.css.map": "/My-Grocery/static/css/main.bb1bd574.css.map",
-    "main.dc9c2dc4.js.map": "/My-Grocery/static/js/main.dc9c2dc4.js.map",
+    "main.7e7e4867.js.map": "/My-Grocery/static/js/main.7e7e4867.js.map",
     "475.0423bc91.chunk.css.map": "/My-Grocery/static/css/475.0423bc91.chunk.css.map",
-    "475.bde76711.chunk.js.map": "/My-Grocery/static/js/475.bde76711.chunk.js.map",
+    "475.07ab5b05.chunk.js.map": "/My-Grocery/static/js/475.07ab5b05.chunk.js.map",
     "449.0423bc91.chunk.css.map": "/My-Grocery/static/css/449.0423bc91.chunk.css.map",
     "449.be2424cd.chunk.js.map": "/My-Grocery/static/js/449.be2424cd.chunk.js.map",
     "453.418b420f.chunk.js.map": "/My-Grocery/static/js/453.418b420f.chunk.js.map",
@@ -26,6 +26,6 @@
   },
   "entrypoints": [
     "static/css/main.bb1bd574.css",
-    "static/js/main.dc9c2dc4.js"
+    "static/js/main.7e7e4867.js"
   ]
 }

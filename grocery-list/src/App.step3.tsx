@@ -181,21 +181,6 @@ const Home: React.FC<HomeProps> = ({ user, onSignOut }) => {
           </Typography>
         </Box>
       )}
-      
-      <Box sx={{ mb: 4, p: 3, backgroundColor: 'success.dark', borderRadius: 2 }}>
-        <Typography variant="h5" gutterBottom>🎉 All Systems Ready!</Typography>
-        <Typography variant="body1" gutterBottom>
-          Your grocery app is now fully loaded with the revolutionary smart sharing system:
-        </Typography>
-        <ul style={{ margin: '16px 0', paddingLeft: '20px' }}>
-          <li><strong>One-tap sharing</strong> - reduced from 5+ steps to just 1 click</li>
-          <li><strong>Guest access</strong> - no forced registration required</li>
-          <li><strong>QR code sharing</strong> - instant visual sharing</li>
-          <li><strong>Multi-channel sharing</strong> - SMS, email, native sharing</li>
-          <li><strong>Smart permissions</strong> - preset options for easy control</li>
-          <li><strong>Real-time collaboration</strong> - live updates across devices</li>
-        </ul>
-      </Box>
 
       <ListOverview />
     </Container>
