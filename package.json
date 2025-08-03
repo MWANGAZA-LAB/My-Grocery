@@ -4,9 +4,10 @@
   "description": "Smart Sharing Grocery List App",
   "scripts": {
     "install": "cd grocery-list && npm ci",
-    "build": "cd grocery-list && npm run build:railway",
-    "start": "cd grocery-list && npm run start:prod",
-    "dev": "cd grocery-list && npm start"
+    "build": "cd grocery-list && npm run build",
+    "start": "cd grocery-list && npm start",
+    "dev": "cd grocery-list && npm start",
+    "deploy": "cd grocery-list && npm run deploy"
   },
   "engines": {
     "node": ">=18.0.0",
