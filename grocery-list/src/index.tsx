@@ -4,15 +4,16 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 // import { initPerformanceMonitoring } from './utils/performance';
 
-// Smart app loading based on URL parameters
+// Smart app loading - default to production app
 const urlParams = new URLSearchParams(window.location.search);
 const step = urlParams.get('step');
 
 let AppComponent;
-if (step === '3') {
-  AppComponent = React.lazy(() => import('./App.step3'));
-} else {
+if (step === '2') {
   AppComponent = React.lazy(() => import('./App.step2'));
+} else {
+  // Default to production app (step 3)
+  AppComponent = React.lazy(() => import('./App.step3'));
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
