@@ -8,9 +8,6 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
     "firebase": "^12.0.0",
     "html5-qrcode": "^2.3.8",
     "qrcode.react": "^4.2.0",
@@ -18,7 +15,6 @@
     "react-dom": "^19.1.0",
     "react-router-dom": "^6.30.1",
     "react-scripts": "^5.0.1",
-    "serve": "^14.2.4",
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
@@ -26,17 +22,17 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "gh-pages": "^6.3.0",
     "typescript": "^4.9.5"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "set CI=false && set NODE_OPTIONS=--max-old-space-size=2048 && react-scripts build",
-    "build:railway": "CI=false NODE_OPTIONS=--max-old-space-size=256 react-scripts build",
-    "build:minimal": "CI=false NODE_OPTIONS=--max-old-space-size=256 GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "start:prod": "serve -s build -l 3000",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
   },
