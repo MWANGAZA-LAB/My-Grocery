@@ -1,6 +1,6 @@
 [variables]
 NODE_ENV = "production"
-CI = "false"
+CI = "false" 
 GENERATE_SOURCEMAP = "false"
 NODE_OPTIONS = "--max-old-space-size=512"
 
@@ -8,13 +8,10 @@ NODE_OPTIONS = "--max-old-space-size=512"
 nixPkgs = ["nodejs_20", "npm"]
 
 [phases.install]
-cmd = "cd grocery-list && npm ci"
+cmd = "npm run install"
 
-[phases.build]
-cmd = "cd grocery-list && npm run build:railway"
-
-[phases.start]
-cmd = "cd grocery-list && npm run start:prod"
+[phases.build] 
+cmd = "npm run build"
 
 [start]
-cmd = "cd grocery-list && npm run start:prod"
+cmd = "npm start"

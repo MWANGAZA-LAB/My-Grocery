@@ -65,7 +65,9 @@ function App() {
               <Routes>
                 <Route path="/list/:id" element={<ListDetail />} />
                 <Route path="/join/:token" element={<JoinListPage />} />
-                <Route path="/" element={<Home user={user} />} />
+                <Route path="/" element={<Home user={user} onSignOut={function (): void {
+                  throw new Error('Function not implemented.');
+                } } />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </ErrorBoundary>
