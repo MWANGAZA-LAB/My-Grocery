@@ -36,7 +36,8 @@ export interface QRScannerProps {
 }
 
 export interface HomeProps {
-  user: AppUser | null;
+  user: User | null;
+  onSignOut: () => void;
 }
 
 export interface Progress {
