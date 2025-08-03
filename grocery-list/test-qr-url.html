@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Code URL Test</title>
+</head>
+<body>
+    <h1>QR Code URL Generation Test</h1>
+    <p>Testing the URL generation for GitHub Pages deployment...</p>
+    
+    <script>
+        // Simulate the QR code URL generation logic
+        const testListId = "test123";
+        const publicUrl = "/My-Grocery"; // This comes from process.env.PUBLIC_URL
+        const baseUrl = window.location.origin; // e.g., https://mwangaza-lab.github.io
+        
+        const qrCodeUrl = baseUrl + publicUrl + '/list/' + testListId;
+        
+        console.log("Base URL:", baseUrl);
+        console.log("Public URL:", publicUrl);
+        console.log("Generated QR Code URL:", qrCodeUrl);
+        
+        document.body.innerHTML += `
+            <div>
+                <h2>URL Generation Results:</h2>
+                <p><strong>Base URL:</strong> ${baseUrl}</p>
+                <p><strong>Public URL:</strong> ${publicUrl}</p>
+                <p><strong>Test List ID:</strong> ${testListId}</p>
+                <p><strong>Generated QR Code URL:</strong> <a href="${qrCodeUrl}" target="_blank">${qrCodeUrl}</a></p>
+                <p>This URL should resolve to: <code>https://mwangaza-lab.github.io/My-Grocery/list/test123</code></p>
+            </div>
+        `;
+    </script>
+</body>
+</html>

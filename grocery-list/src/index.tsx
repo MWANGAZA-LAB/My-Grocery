@@ -4,7 +4,8 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 // import { initPerformanceMonitoring } from './utils/performance';
 
-// Smart app loading - default to production app
+// Direct import for production app (better performance)
+import App from './App.step3';
 const urlParams = new URLSearchParams(window.location.search);
 const step = urlParams.get('step');
 
@@ -12,8 +13,8 @@ let AppComponent;
 if (step === '2') {
   AppComponent = React.lazy(() => import('./App.step2'));
 } else {
-  // Default to production app (step 3)
-  AppComponent = React.lazy(() => import('./App.step3'));
+  // Direct import for production (no lazy loading delay)
+  AppComponent = App;
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
@@ -22,26 +23,30 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 try {
   root.render(
     <React.StrictMode>
-      <React.Suspense fallback={
-        <div style={{ 
-          padding: '40px', 
-          textAlign: 'center', 
-          fontFamily: 'Arial, sans-serif',
-          backgroundColor: '#000000',
-          color: '#ffffff',
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <div>
-            <h1>🛒 Loading My Grocery App...</h1>
-            <p>Preparing smart sharing system...</p>
+      {step === '2' ? (
+        <React.Suspense fallback={
+          <div style={{ 
+            padding: '40px', 
+            textAlign: 'center', 
+            fontFamily: 'Arial, sans-serif',
+            backgroundColor: '#000000',
+            color: '#ffffff',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div>
+              <h1>🛒 Loading My Grocery App...</h1>
+              <p>Preparing smart sharing system...</p>
+            </div>
           </div>
-        </div>
-      }>
+        }>
+          <AppComponent />
+        </React.Suspense>
+      ) : (
         <AppComponent />
-      </React.Suspense>
+      )}
     </React.StrictMode>
   );
 } catch (error) {

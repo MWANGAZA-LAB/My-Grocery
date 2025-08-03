@@ -25,6 +25,7 @@ export default function ListDetail(): React.ReactElement {
   const [inviteEmail, setInviteEmail] = useState<string>('');
   const [inviteError, setInviteError] = useState<string>('');
   const [showQR, setShowQR] = useState<boolean>(false);
+  const [isNewList, setIsNewList] = useState<boolean>(false);
   const navigate = useNavigate();
   const user = auth.currentUser;
 
@@ -32,7 +33,10 @@ export default function ListDetail(): React.ReactElement {
     if (!id) return;
     const unsubItems = onSnapshot(
       query(collection(db, 'lists', id, 'items'), orderBy('updatedAt', 'desc')),
-      snap => setItems(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as GroceryItem)))
+      snap => {
+        const itemsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as GroceryItem));
+        setItems(itemsData);
+      }
     );
     const unsubList = onSnapshot(doc(db, 'lists', id), docSnap => {
       if (docSnap.exists()) {
@@ -42,6 +46,19 @@ export default function ListDetail(): React.ReactElement {
     });
     return () => { unsubItems(); unsubList(); };
   }, [id]);
+
+  // Separate effect for handling new list auto-open
+  useEffect(() => {
+    if (!list || loading || items.length > 0 || addOpen) return;
+    
+    const listAge = list.createdAt?.toDate?.() || new Date();
+    const isRecentlyCreated = (Date.now() - listAge.getTime()) < 30000; // Within 30 seconds
+    
+    if (isRecentlyCreated) {
+      setIsNewList(true);
+      setAddOpen(true);
+    }
+  }, [list, loading, items.length, addOpen]);
 
   // Helper to update progress field in parent list doc
   const updateProgress = async (): Promise<void> => {
@@ -80,6 +97,7 @@ export default function ListDetail(): React.ReactElement {
     setNewText('');
     setNewQty('');
     setAddOpen(false);
+    setIsNewList(false); // Reset new list flag after first item
     await updateProgress();
   };
 
@@ -125,6 +143,46 @@ export default function ListDetail(): React.ReactElement {
     <Box sx={{ mt: 2 }}>
       <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/')} sx={{ mb: 2 }}>Back</Button>
       <Typography variant="h5" align="center" gutterBottom>{list.name}</Typography>
+      
+      {/* Welcome message for new empty lists */}
+      {items.length === 0 && isNewList && (
+        <Box sx={{ 
+          textAlign: 'center', 
+          mb: 3, 
+          p: 3, 
+          backgroundColor: 'success.dark', 
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'success.main'
+        }}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+            🎉 List Created Successfully!
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Start adding items to your grocery list. Click "Add Item" below to get started!
+          </Typography>
+        </Box>
+      )}
+      
+      {/* Empty state for lists without items */}
+      {items.length === 0 && !isNewList && (
+        <Box sx={{ 
+          textAlign: 'center', 
+          mb: 3, 
+          p: 3, 
+          backgroundColor: 'grey.900', 
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'grey.700'
+        }}>
+          <Typography variant="h6" gutterBottom>
+            📝 Empty List
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            This list is empty. Add some items to get started!
+          </Typography>
+        </Box>
+      )}
       <List>
         {items.map(item => (
           <ListItem key={item.id} secondaryAction={
@@ -139,13 +197,56 @@ export default function ListDetail(): React.ReactElement {
           </ListItem>
         ))}
       </List>
-      <Button startIcon={<AddIcon />} variant="contained" fullWidth onClick={() => setAddOpen(true)} sx={{ mt: 2 }}>Add Item</Button>
+      
+      {/* Prominent Add Item button for empty lists */}
+      {items.length === 0 ? (
+        <Button 
+          startIcon={<AddIcon />} 
+          variant="contained" 
+          size="large"
+          fullWidth 
+          onClick={() => setAddOpen(true)} 
+          sx={{ 
+            mt: 2, 
+            mb: 2,
+            py: 2,
+            fontSize: '1.1rem',
+            fontWeight: 'bold',
+            backgroundColor: 'primary.main',
+            '&:hover': {
+              backgroundColor: 'primary.dark',
+              transform: 'scale(1.02)',
+            },
+            transition: 'all 0.2s ease-in-out',
+          }}
+        >
+          🛒 Add Your First Item
+        </Button>
+      ) : (
+        <Button 
+          startIcon={<AddIcon />} 
+          variant="contained" 
+          fullWidth 
+          onClick={() => setAddOpen(true)} 
+          sx={{ mt: 2 }}
+        >
+          Add Item
+        </Button>
+      )}
+      
       <Button startIcon={<ArchiveIcon />} variant="outlined" fullWidth onClick={handleArchive} sx={{ mt: 1 }} disabled={list.archived}>Archive List</Button>
       <Button startIcon={<PersonAddIcon />} variant="outlined" fullWidth onClick={() => setSmartShareOpen(true)} sx={{ mt: 1 }} disabled={list.archived || list.ownerId !== user?.uid}>Smart Share</Button>
       <Button startIcon={<PersonAddIcon />} variant="outlined" fullWidth onClick={() => setShareOpen(true)} sx={{ mt: 1 }} disabled={list.archived || list.ownerId !== user?.uid}>Legacy Share</Button>
-      <Dialog open={addOpen} onClose={() => setAddOpen(false)}>
-        <DialogTitle>Add Item</DialogTitle>
+      <Dialog open={addOpen} onClose={() => setAddOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {items.length === 0 ? "🛒 Add Your First Item" : "Add Item"}
+        </DialogTitle>
         <DialogContent>
+          {items.length === 0 && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Start building your grocery list! Add items with optional quantities.
+            </Typography>
+          )}
           <TextField
             label="Item name"
             value={newText}

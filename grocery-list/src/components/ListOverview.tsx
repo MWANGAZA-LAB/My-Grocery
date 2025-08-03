@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { db, auth } from '../firebase';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { auth, db } from '../firebase';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy, doc, updateDoc, getDoc } from 'firebase/firestore';
-import { List, ListItem, ListItemText, ListItemSecondaryAction, Typography, Button, Box, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { List, ListItem, ListItemText, ListItemSecondaryAction, Typography, Button, Box, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { useNavigate } from 'react-router-dom';
-import QRScanner from './QRScanner';
 import { QRCodeSVG } from 'qrcode.react';
 import { GroceryList, Progress } from '../types';
+
+// Lazy load QRScanner to reduce initial bundle size
+const QRScanner = lazy(() => import('./QRScanner'));
 
 export default function ListOverview(): React.ReactElement {
   const [lists, setLists] = useState<GroceryList[]>([]);
@@ -60,14 +62,23 @@ export default function ListOverview(): React.ReactElement {
   const handleAdd = async (): Promise<void> => {
     const name = prompt('List name?');
     if (!name) return;
-    await addDoc(collection(db, 'lists'), {
-      name,
-      ownerId: user?.uid || 'anonymous',
-      allowedUsers: user?.uid ? [user.uid] : [],
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      archived: false
-    });
+    
+    try {
+      const docRef = await addDoc(collection(db, 'lists'), {
+        name,
+        ownerId: user?.uid || 'anonymous',
+        allowedUsers: user?.uid ? [user.uid] : [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        archived: false
+      });
+      
+      // Automatically navigate to the newly created list
+      navigate(`/list/${docRef.id}`);
+    } catch (error) {
+      console.error('Error creating list:', error);
+      alert('Failed to create list. Please try again.');
+    }
   };
 
   return (
@@ -136,9 +147,17 @@ export default function ListOverview(): React.ReactElement {
               <Typography variant="h6" sx={{ mb: 2 }}>
                 {lists.find(list => list.id === qrListId)?.name}
               </Typography>
-              <QRCodeSVG value={window.location.origin + '/list/' + qrListId} size={180} />
+              <QRCodeSVG 
+                value={window.location.origin + process.env.PUBLIC_URL + '/list/' + qrListId} 
+                size={200}
+                level="M"
+                includeMargin={true}
+              />
               <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
                 Let another user scan this code to join and collaborate on your list.
+              </Typography>
+              <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary', wordBreak: 'break-all' }}>
+                {window.location.origin + process.env.PUBLIC_URL + '/list/' + qrListId}
               </Typography>
             </Box>
           )}
@@ -150,13 +169,14 @@ export default function ListOverview(): React.ReactElement {
       <Dialog open={scanOpen} onClose={() => setScanOpen(false)}>
         <DialogTitle>Scan QR Code to Join List</DialogTitle>
         <DialogContent>
-          <QRScanner
-            onScan={async (data: string) => {
-              setScanOpen(false);
-              setScanError('');
-              // Extract listId from URL
-              const match = data.match(/\/list\/(\w+)/);
-              if (match) {
+          <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}><CircularProgress /></Box>}>
+            <QRScanner
+              onScan={async (data: string) => {
+                setScanOpen(false);
+                setScanError('');
+                // Extract listId from URL
+                const match = data.match(/\/list\/(\w+)/);
+                if (match) {
                 const listId = match[1];
                 // Check and add user to allowedUsers if needed
                 if (user) {
@@ -184,6 +204,7 @@ export default function ListOverview(): React.ReactElement {
             width={300}
             height={300}
           />
+          </Suspense>
           {scanError && <Typography color="error">{scanError}</Typography>}
         </DialogContent>
         <DialogActions>
