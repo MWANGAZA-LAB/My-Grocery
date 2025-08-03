@@ -18,8 +18,7 @@ import {
 } from '@mui/material';
 import { 
   AccountCircle, 
-  ExitToApp, 
-  Person 
+  ExitToApp
 } from '@mui/icons-material';
 import './firebase';
 import { auth } from './firebase';
@@ -66,15 +65,14 @@ const UserMenu: React.FC<{ user: User; onSignOut: () => void }> = ({ user, onSig
     onSignOut();
   };
 
-  const displayName = user.isAnonymous ? 'Guest User' : (user.email || 'User');
-  const isGuest = user.isAnonymous;
+  const displayName = user.email || 'User';
 
   return (
     <>
       <Chip
         avatar={
-          <Avatar sx={{ bgcolor: isGuest ? 'warning.main' : 'primary.main' }}>
-            {isGuest ? <Person /> : <AccountCircle />}
+          <Avatar sx={{ bgcolor: 'primary.main' }}>
+            <AccountCircle />
           </Avatar>
         }
         label={displayName}
@@ -112,13 +110,13 @@ const UserMenu: React.FC<{ user: User; onSignOut: () => void }> = ({ user, onSig
       >
         <MenuItem disabled>
           <ListItemIcon>
-            <Avatar sx={{ bgcolor: isGuest ? 'warning.main' : 'primary.main' }}>
-              {isGuest ? <Person /> : <AccountCircle />}
+            <Avatar sx={{ bgcolor: 'primary.main' }}>
+              <AccountCircle />
             </Avatar>
           </ListItemIcon>
           <ListItemText 
             primary={displayName}
-            secondary={isGuest ? 'Anonymous Session' : user.email}
+            secondary={user.email || 'Collaborative User'}
           />
         </MenuItem>
         <Divider />
@@ -149,7 +147,7 @@ const Home: React.FC<HomeProps> = ({ user, onSignOut }) => {
             🛒 My Grocery App
           </Typography>
           <Typography variant="h6" color="text.secondary">
-            Smart Sharing System - Fully Loaded! 🚀
+            Real-Time Collaboration Made Simple 🚀
           </Typography>
         </Box>
         {user && (
@@ -159,28 +157,23 @@ const Home: React.FC<HomeProps> = ({ user, onSignOut }) => {
         )}
       </Box>
 
-      {/* Welcome Message */}
-      {user && (
-        <Box sx={{ 
-          textAlign: 'center', 
-          mb: 4, 
-          p: 2, 
-          backgroundColor: 'primary.dark', 
-          borderRadius: 2,
-          border: '1px solid',
-          borderColor: 'primary.main'
-        }}>
-          <Typography variant="h6" gutterBottom>
-            Welcome back! 👋
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {user.isAnonymous 
-              ? 'You\'re browsing as a guest. Create lists and share them instantly!' 
-              : `Signed in as ${user.email}. All your lists are synced and secure.`
-            }
-          </Typography>
-        </Box>
-      )}
+      {/* Collaboration Banner */}
+      <Box sx={{ 
+        textAlign: 'center', 
+        mb: 4, 
+        p: 3, 
+        backgroundColor: 'primary.dark', 
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'primary.main'
+      }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+          Share. Shop. Sync. Simple. �
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Create lists, share instantly with QR codes, and collaborate in real-time across any location.
+        </Typography>
+      </Box>
 
       <ListOverview />
     </Container>
