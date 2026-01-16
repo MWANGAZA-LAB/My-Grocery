@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { CssBaseline, Container, ThemeProvider, createTheme } from '@mui/material';
 import './firebase';
 import { auth } from './firebase';
@@ -57,7 +57,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider theme={darkTheme}>
-        <Router>
+        <BrowserRouter basename="/My-Grocery">
           <SyncStatus />
           <CssBaseline />
           <Container maxWidth="sm">
@@ -65,14 +65,15 @@ function App() {
               <Routes>
                 <Route path="/list/:id" element={<ListDetail />} />
                 <Route path="/join/:token" element={<JoinListPage />} />
-                <Route path="/" element={<Home user={user} onSignOut={function (): void {
-                  throw new Error('Function not implemented.');
-                } } />} />
+                <Route path="/" element={<Home user={user} onSignOut={async () => {
+                  await auth.signOut();
+                  setUser(null);
+                }} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </ErrorBoundary>
           </Container>
-        </Router>
+        </BrowserRouter>
       </ThemeProvider>
     </ErrorBoundary>
   );

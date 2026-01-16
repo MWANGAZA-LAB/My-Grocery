@@ -55,13 +55,15 @@ export interface ShareMember {
 class SmartShareService {
   
   /**
-   * Generate a secure, unique share token
+   * Generate a cryptographically secure, unique share token
    */
   private generateToken(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const randomValues = new Uint32Array(32);
+    crypto.getRandomValues(randomValues);
     let result = '';
     for (let i = 0; i < 32; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+      result += chars.charAt(randomValues[i] % chars.length);
     }
     return result;
   }

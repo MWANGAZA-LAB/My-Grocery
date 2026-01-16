@@ -1,125 +1,74 @@
-// jest-dom adds custom jest matchers for asserting on DOM nodes.
-// allows you to do things like:
-// expect(element).toHaveTextContent(/react/i)
-// learn more: https://github.com/testing-library/jest-dom
+// Testing setup for Vitest
+// Adds custom matchers for asserting on DOM nodes
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
+
+// Mock crypto API for tests
+Object.defineProperty(globalThis, 'crypto', {
+  value: {
+    getRandomValues: (arr: Uint32Array) => {
+      for (let i = 0; i < arr.length; i++) {
+        arr[i] = Math.floor(Math.random() * 4294967296);
+      }
+      return arr;
+    }
+  }
+});
 
 // Mock Firebase completely for all tests
-jest.mock('./firebase', () => ({
+vi.mock('./firebase', () => ({
   auth: {
     currentUser: { uid: 'test-uid' },
-    onAuthStateChanged: jest.fn((callback) => {
-      // Simulate a logged-in user
+    onAuthStateChanged: vi.fn((callback: (user: { uid: string } | null) => void) => {
       callback({ uid: 'test-uid' });
-      return jest.fn(); // unsubscribe function
+      return vi.fn();
     }),
-    signInAnonymously: jest.fn()
+    signInAnonymously: vi.fn(),
+    signOut: vi.fn()
   },
-  db: {
-    collection: jest.fn(() => ({
-      doc: jest.fn(() => ({
-        set: jest.fn().mockResolvedValue({}),
-        get: jest.fn().mockResolvedValue({ exists: true, data: () => ({}) }),
-        onSnapshot: jest.fn()
-      })),
-      add: jest.fn().mockResolvedValue({ id: 'test-doc-id' }),
-      where: jest.fn(() => ({
-        onSnapshot: jest.fn()
-      })),
-      onSnapshot: jest.fn()
-    }))
-  }
+  db: {}
 }));
 
 // Mock Firebase modules
-jest.mock('firebase/auth', () => ({
-  getAuth: jest.fn(() => ({
+vi.mock('firebase/auth', () => ({
+  getAuth: vi.fn(() => ({
     currentUser: { uid: 'test-uid' }
   })),
-  onAuthStateChanged: jest.fn((auth, callback) => {
+  onAuthStateChanged: vi.fn((auth, callback) => {
     callback({ uid: 'test-uid' });
-    return jest.fn();
+    return vi.fn();
   }),
-  signInAnonymously: jest.fn()
+  signInAnonymously: vi.fn().mockResolvedValue({ user: { uid: 'anon-user-123' } })
 }));
 
-jest.mock('firebase/firestore', () => ({
-  getFirestore: jest.fn(() => ({})),
-  collection: jest.fn(() => ({
-    doc: jest.fn(() => ({
-      set: jest.fn(),
-      get: jest.fn(),
-      onSnapshot: jest.fn((callback) => {
-        if (callback) {
-          setTimeout(() => callback({
-            docs: [],
-            data: () => ({}),
-            exists: true
-          }), 0);
-        }
-        return jest.fn(); // return unsubscribe function
-      })
-    })),
-    add: jest.fn(),
-    where: jest.fn(() => ({
-      onSnapshot: jest.fn((callback) => {
-        if (callback) {
-          setTimeout(() => callback({
-            docs: [],
-            data: () => ({}),
-            exists: true
-          }), 0);
-        }
-        return jest.fn(); // return unsubscribe function
-      })
-    })),
-    onSnapshot: jest.fn((callback) => {
-      if (callback) {
-        setTimeout(() => callback({
-          docs: [],
-          data: () => ({}),
-          exists: true
-        }), 0);
-      }
-      return jest.fn(); // return unsubscribe function
-    })
-  })),
-  doc: jest.fn(() => ({
-    set: jest.fn(),
-    get: jest.fn(),
-    onSnapshot: jest.fn((callback) => {
-      if (callback) {
-        setTimeout(() => callback({
-          docs: [],
-          data: () => ({}),
-          exists: true
-        }), 0);
-      }
-      return jest.fn(); // return unsubscribe function
-    })
-  })),
-  addDoc: jest.fn(),
-  updateDoc: jest.fn(),
-  deleteDoc: jest.fn(),
-  onSnapshot: jest.fn((ref, callback) => {
-    // Call callback with mock data
-    if (callback) {
-      setTimeout(() => callback({
-        docs: [],
-        data: () => ({}),
-        exists: true
-      }), 0);
+vi.mock('firebase/firestore', () => ({
+  getFirestore: vi.fn(() => ({})),
+  collection: vi.fn(() => ({})),
+  doc: vi.fn(() => ({})),
+  addDoc: vi.fn().mockResolvedValue({ id: 'new-doc-id' }),
+  getDoc: vi.fn().mockResolvedValue({ exists: () => true, data: () => ({}) }),
+  getDocs: vi.fn().mockResolvedValue({ empty: true, docs: [] }),
+  updateDoc: vi.fn().mockResolvedValue(undefined),
+  deleteDoc: vi.fn().mockResolvedValue(undefined),
+  onSnapshot: vi.fn((ref, callback) => {
+    if (typeof callback === 'function') {
+      setTimeout(() => callback({ docs: [], data: () => ({}), exists: () => true }), 0);
     }
-    return jest.fn(); // return unsubscribe function
+    return vi.fn();
   }),
-  query: jest.fn(() => ({})),
-  where: jest.fn(),
-  orderBy: jest.fn(),
-  limit: jest.fn()
+  query: vi.fn(() => ({})),
+  where: vi.fn(() => ({})),
+  orderBy: vi.fn(() => ({})),
+  limit: vi.fn(() => ({})),
+  serverTimestamp: vi.fn(() => ({ seconds: Date.now() / 1000 })),
+  Timestamp: {
+    now: () => ({ toDate: () => new Date(), seconds: Date.now() / 1000 }),
+    fromDate: (date: Date) => ({ toDate: () => date, seconds: date.getTime() / 1000 })
+  }
 }));
 
-jest.mock('firebase/app', () => ({
-  initializeApp: jest.fn(() => ({}))
+vi.mock('firebase/app', () => ({
+  initializeApp: vi.fn(() => ({}))
 }));
 
 // Mock environment variables for tests

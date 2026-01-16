@@ -21,6 +21,7 @@ import {
   ListItemIcon,
   Checkbox,
   ListItemButton,
+  CircularProgress,
 } from '@mui/material';
 import {
   ContentCopy,
@@ -35,6 +36,8 @@ import {
   AdminPanelSettings,
 } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
+import { auth } from '../firebase';
+import { smartShareService, ShareSettings, SharePermissions } from '../services/smartShareService';
 
 interface SmartShareDialogProps {
   open: boolean;
@@ -42,22 +45,6 @@ interface SmartShareDialogProps {
   listId: string;
   listName: string;
   items: Array<{ id: string; text: string; done: boolean; category?: string }>;
-}
-
-interface SharePermissions {
-  canView: boolean;
-  canAddItems: boolean;
-  canEditItems: boolean;
-  canDeleteItems: boolean;
-}
-
-interface ShareSettings {
-  permissions: SharePermissions;
-  expiresIn: '1h' | '1d' | '1w' | 'never';
-  shareMode: 'all' | 'selected';
-  selectedItems: string[];
-  allowAnonymous: boolean;
-  maxUses?: number;
 }
 
 export default function SmartShareDialog({ 
@@ -82,41 +69,28 @@ export default function SmartShareDialog({
 
   const [shareLink, setShareLink] = useState<string>('');
   const [showQR, setShowQR] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
     severity: 'success'
   });
 
-  // Generate smart share link
-  const generateShareLink = async (): Promise<string> => {
-    // In real implementation, this would call your backend API
-    const shareToken = generateToken();
-    const baseUrl = window.location.origin;
-    
-    // Create share record in database
-    await createShareRecord({
-      token: shareToken,
-      listId,
-      settings: shareSettings,
-      createdAt: new Date(),
-    });
-
-    return `${baseUrl}/join/${shareToken}`;
-  };
-
-  const generateToken = (): string => {
-    return Math.random().toString(36).substring(2) + Date.now().toString(36);
-  };
-
-  const createShareRecord = async (record: any): Promise<void> => {
-    // Mock API call - replace with actual Firebase/backend call
-    console.log('Creating share record:', record);
-  };
-
   const handleCreateLink = async (): Promise<void> => {
+    const user = auth.currentUser;
+    if (!user) {
+      setSnackbar({
+        open: true,
+        message: 'You must be logged in to create share links',
+        severity: 'error'
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const link = await generateShareLink();
+      const token = await smartShareService.createShareToken(listId, user.uid, shareSettings);
+      const link = smartShareService.generateShareUrl(token);
       setShareLink(link);
       setSnackbar({
         open: true,
@@ -126,9 +100,11 @@ export default function SmartShareDialog({
     } catch (error) {
       setSnackbar({
         open: true,
-        message: 'Failed to create share link',
+        message: error instanceof Error ? error.message : 'Failed to create share link',
         severity: 'error'
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -165,6 +141,8 @@ export default function SmartShareDialog({
             title: `Grocery List: ${listName}`,
             text: `Join my grocery list "${listName}"`,
             url: shareLink,
+          }).catch(() => {
+            // User cancelled share - ignore
           });
         }
         break;
@@ -181,7 +159,7 @@ export default function SmartShareDialog({
   };
 
   const setPermissionPreset = (preset: 'viewer' | 'editor' | 'admin'): void => {
-    const presets = {
+    const presets: Record<string, SharePermissions> = {
       viewer: { canView: true, canAddItems: false, canEditItems: false, canDeleteItems: false },
       editor: { canView: true, canAddItems: true, canEditItems: true, canDeleteItems: false },
       admin: { canView: true, canAddItems: true, canEditItems: true, canDeleteItems: true },
@@ -202,11 +180,17 @@ export default function SmartShareDialog({
     }));
   };
 
+  const handleClose = (): void => {
+    setShareLink('');
+    setShowQR(false);
+    onClose();
+  };
+
   return (
     <>
       <Dialog 
         open={open} 
-        onClose={onClose} 
+        onClose={handleClose} 
         maxWidth="sm" 
         fullWidth
         PaperProps={{
@@ -218,7 +202,7 @@ export default function SmartShareDialog({
             <Share color="primary" />
             <Typography variant="h6">Share "{listName}"</Typography>
           </Box>
-          <IconButton onClick={onClose} size="small">
+          <IconButton onClick={handleClose} size="small">
             <Close />
           </IconButton>
         </DialogTitle>
@@ -230,11 +214,11 @@ export default function SmartShareDialog({
               Permission Level
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {['viewer', 'editor', 'admin'].map((preset) => (
+              {(['viewer', 'editor', 'admin'] as const).map((preset) => (
                 <Chip
                   key={preset}
                   label={preset.charAt(0).toUpperCase() + preset.slice(1)}
-                  onClick={() => setPermissionPreset(preset as any)}
+                  onClick={() => setPermissionPreset(preset)}
                   color={getPermissionPreset().toLowerCase() === preset ? 'primary' : 'default'}
                   variant={getPermissionPreset().toLowerCase() === preset ? 'filled' : 'outlined'}
                   icon={
@@ -264,18 +248,18 @@ export default function SmartShareDialog({
               
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography variant="body2">Expires in:</Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  {[
-                    { value: '1h', label: '1 Hour' },
-                    { value: '1d', label: '1 Day' },
-                    { value: '1w', label: '1 Week' },
-                    { value: 'never', label: 'Never' }
-                  ].map((option) => (
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {([
+                    { value: '1h' as const, label: '1 Hour' },
+                    { value: '1d' as const, label: '1 Day' },
+                    { value: '1w' as const, label: '1 Week' },
+                    { value: 'never' as const, label: 'Never' }
+                  ]).map((option) => (
                     <Chip
                       key={option.value}
                       label={option.label}
                       size="small"
-                      onClick={() => setShareSettings(prev => ({ ...prev, expiresIn: option.value as any }))}
+                      onClick={() => setShareSettings(prev => ({ ...prev, expiresIn: option.value }))}
                       color={shareSettings.expiresIn === option.value ? 'primary' : 'default'}
                       variant={shareSettings.expiresIn === option.value ? 'filled' : 'outlined'}
                     />
@@ -340,10 +324,11 @@ export default function SmartShareDialog({
               fullWidth
               size="large"
               onClick={handleCreateLink}
-              startIcon={<LinkIcon />}
+              disabled={isLoading}
+              startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <LinkIcon />}
               sx={{ mb: 2 }}
             >
-              Create Share Link
+              {isLoading ? 'Creating...' : 'Create Share Link'}
             </Button>
           ) : (
             <Box>
@@ -415,8 +400,8 @@ export default function SmartShareDialog({
 
               {/* QR Code */}
               {showQR && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
-                  <QRCodeSVG value={shareLink} size={150} />
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, bgcolor: 'white', borderRadius: 1 }}>
+                  <QRCodeSVG value={shareLink} size={150} level="M" includeMargin />
                 </Box>
               )}
             </Box>
@@ -424,7 +409,7 @@ export default function SmartShareDialog({
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={onClose}>
+          <Button onClick={handleClose}>
             Close
           </Button>
         </DialogActions>

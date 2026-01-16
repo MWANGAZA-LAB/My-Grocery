@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { 
   CssBaseline, 
   Container, 
@@ -244,7 +244,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <ErrorBoundary>
-        <Router>
+        <BrowserRouter basename="/My-Grocery">
           <SyncStatus />
           <Routes>
             <Route 
@@ -264,7 +264,7 @@ const App: React.FC = () => {
               element={<Navigate to="/" replace />} 
             />
           </Routes>
-        </Router>
+        </BrowserRouter>
       </ErrorBoundary>
     </ThemeProvider>
   );

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { auth, db } from '../firebase';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy, doc, updateDoc, getDoc } from 'firebase/firestore';
-import { List, ListItem, ListItemText, ListItemSecondaryAction, Typography, Button, Box, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress } from '@mui/material';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy, doc, updateDoc, getDoc, FirestoreError } from 'firebase/firestore';
+import { List, ListItem, ListItemText, ListItemSecondaryAction, Typography, Button, Box, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Alert, Snackbar, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { QRCodeSVG } from 'qrcode.react';
 import { GroceryList, Progress } from '../types';
+import { validateListName } from '../utils/validation';
 
 // Lazy load QRScanner to reduce initial bundle size
 const QRScanner = lazy(() => import('./QRScanner'));
@@ -23,6 +24,11 @@ export default function ListOverview(): React.ReactElement {
   const [qrOpen, setQrOpen] = useState<boolean>(false);
   const [qrListId, setQrListId] = useState<string | null>(null);
   const [shareSelectOpen, setShareSelectOpen] = useState<boolean>(false);
+  const [addDialogOpen, setAddDialogOpen] = useState<boolean>(false);
+  const [newListName, setNewListName] = useState<string>('');
+  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
+  const [validationError, setValidationError] = useState<string>('');
 
   useEffect(() => {
     let q;
@@ -60,12 +66,18 @@ export default function ListOverview(): React.ReactElement {
   };
 
   const handleAdd = async (): Promise<void> => {
-    const name = prompt('List name?');
-    if (!name) return;
+    const validation = validateListName(newListName);
+    if (!validation.isValid) {
+      setValidationError(validation.error || 'Invalid list name');
+      return;
+    }
+    
+    setIsCreating(true);
+    setValidationError('');
     
     try {
       const docRef = await addDoc(collection(db, 'lists'), {
-        name,
+        name: newListName.trim(),
         ownerId: user?.uid || 'anonymous',
         allowedUsers: user?.uid ? [user.uid] : [],
         createdAt: serverTimestamp(),
@@ -73,11 +85,17 @@ export default function ListOverview(): React.ReactElement {
         archived: false
       });
       
-      // Automatically navigate to the newly created list
+      setAddDialogOpen(false);
+      setNewListName('');
+      setSnackbar({ open: true, message: 'List created successfully!', severity: 'success' });
       navigate(`/list/${docRef.id}`);
     } catch (error) {
-      console.error('Error creating list:', error);
-      alert('Failed to create list. Please try again.');
+      const errorMessage = error instanceof FirestoreError 
+        ? `Failed to create list: ${error.message}` 
+        : 'Failed to create list. Please try again.';
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -92,7 +110,7 @@ export default function ListOverview(): React.ReactElement {
           {showArchived ? 'Hide Archived' : 'Show Archived'}
         </Button>
       </Box>
-      <Button startIcon={<AddIcon />} variant="contained" fullWidth onClick={handleAdd} sx={{ mb: 2 }}>Add List</Button>
+      <Button startIcon={<AddIcon />} variant="contained" fullWidth onClick={() => setAddDialogOpen(true)} sx={{ mb: 2 }}>Add List</Button>
       <Button variant="outlined" fullWidth sx={{ mb: 1 }} onClick={() => setScanOpen(true)}>Scan QR</Button>
       <Button variant="outlined" fullWidth sx={{ mb: 2 }} onClick={() => setShareSelectOpen(true)} disabled={lists.filter(list => !list.archived).length === 0}>Share List</Button>
       {loading ? <Typography align="center">Loading...</Typography> :
@@ -211,6 +229,45 @@ export default function ListOverview(): React.ReactElement {
           <Button onClick={() => setScanOpen(false)}>Cancel</Button>
         </DialogActions>
       </Dialog>
+      
+      {/* Add List Dialog */}
+      <Dialog open={addDialogOpen} onClose={() => { setAddDialogOpen(false); setNewListName(''); setValidationError(''); }}>
+        <DialogTitle>Create New List</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="List Name"
+            fullWidth
+            variant="outlined"
+            value={newListName}
+            onChange={(e) => { setNewListName(e.target.value); setValidationError(''); }}
+            error={!!validationError}
+            helperText={validationError || 'Enter a name for your grocery list'}
+            disabled={isCreating}
+            onKeyDown={(e) => { if (e.key === 'Enter' && newListName.trim()) handleAdd(); }}
+            inputProps={{ maxLength: 100 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setAddDialogOpen(false); setNewListName(''); setValidationError(''); }} disabled={isCreating}>Cancel</Button>
+          <Button onClick={handleAdd} variant="contained" disabled={isCreating || !newListName.trim()}>
+            {isCreating ? <CircularProgress size={20} /> : 'Create'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

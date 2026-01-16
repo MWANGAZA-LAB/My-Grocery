@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -13,14 +14,14 @@ describe('ErrorBoundary', () => {
   // Mock console.error to prevent error logs in tests
   const originalError = console.error;
   beforeAll(() => {
-    console.error = jest.fn();
+    console.error = vi.fn();
   });
   
   afterAll(() => {
     console.error = originalError;
   });
 
-  test('renders children when no error', () => {
+  it('renders children when no error', () => {
     render(
       <ErrorBoundary>
         <ThrowError shouldThrow={false} />
@@ -30,7 +31,7 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('No error')).toBeInTheDocument();
   });
 
-  test('renders error UI when child throws error', () => {
+  it('renders error UI when child throws error', () => {
     render(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />

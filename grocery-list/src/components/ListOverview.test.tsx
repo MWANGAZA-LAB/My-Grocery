@@ -1,5 +1,6 @@
+import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 import { ThemeProvider, createTheme } from '@mui/material';
 import ListOverview from './ListOverview';
 
@@ -20,7 +21,7 @@ const renderWithProviders = (component: React.ReactElement) => {
 };
 
 describe('ListOverview', () => {
-  test('renders without crashing', () => {
+  it('renders without crashing', () => {
     // Test that the component renders without throwing errors
     const { container } = renderWithProviders(<ListOverview />);
     expect(container).toBeInTheDocument();
